@@ -1,0 +1,350 @@
+{
+  "name": "LinkedinColdDM",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "aea32981-fd06-4cdd-9d2d-3742c1f3c807",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1MX_Dfp2eNrUFIp-MCtbVinm-xM0APPn9xFUz37-3VCM",
+          "mode": "list",
+          "cachedResultName": "Linkedin",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1MX_Dfp2eNrUFIp-MCtbVinm-xM0APPn9xFUz37-3VCM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sayfa1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1MX_Dfp2eNrUFIp-MCtbVinm-xM0APPn9xFUz37-3VCM/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        208,
+        0
+      ],
+      "id": "317f8a85-fc01-4607-9f1a-f73649d24c70",
+      "name": "Get row(s) in sheet",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "5X3fhM8jvaJACbBq",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bc1a52f3-9325-44fe-9843-b4d0fd2de271",
+              "name": "Company Name",
+              "value": "={{$json[\"Company Name\"]\n  .replace(/\\s+Ltd\\.?$/, '')\n  .replace(/,?\\s*(Inc|LLC|Corp|Ltd|Limited|Corporation|Company|Group|Holdings|International|Solutions|Technologies|Enterprises|Partners|Association|PLC|S\\.A\\.|GmbH|Co\\.|Services)\\.?$/i, '')\n  .replace(/\\\\n|\\n|\\r/g, '')\n  .trim()\n}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        416,
+        0
+      ],
+      "id": "934b1206-1891-4e30-93c7-2baf1e358009",
+      "name": "CompanyNameChanger"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Generate a friendly and direct icebreaker for a personalized event invitation email. The message should:\n1. Be written in an engaging, professional tone\n2. Reference specific details from the person's LinkedIn profile and company 3. End with \"Figured I'd reach out.\"\n4. Invite them to speak at our upcoming industry event\n5. Within 250 words.\n6. Never include this line: I hope this message finds you well!\n\nHere's information about the recipient:\n\nFirst name: {{ $('Get row(s) in sheet').item.json['First Name'] }}\n\nCompany description: {{ $('Get row(s) in sheet').item.json['Company Description'] }}\n\nCompany name: {{ $json['Company Name'] }}\n\nJob Title: {{ $('Get row(s) in sheet').item.json.Title }}\n\nOur event is an exclusive conference focused on AI and automation innovations in business processes. We're bringing together thought leaders and practitioners to share cutting-edge approaches and successful implementation strategies.\n\nYou have access to a LinkedIn Profile tool. Use this tool to gather additional information about the recipient before writing your message. To use the tool, simply indicate that you want to call the LinkedIn profile tool, then incorporate relevant information from their profile into your message.\n\nFormatting instruction:\nReturn ONLY a JSON object with a single \"icebreaker\" key containing the personalized message.",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        624,
+        0
+      ],
+      "id": "a09a4cd1-39c6-4d07-8fe8-17541cd189ae",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\"icebreaker\":\"message\"}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        800,
+        208
+      ],
+      "id": "2492bb5d-16cf-4546-b3c9-57fec6a29148",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        480,
+        208
+      ],
+      "id": "0421b42b-ff75-46d8-bfc3-e6da0fcb3f3d",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "F0GVqNjGj9fppqFu",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1MX_Dfp2eNrUFIp-MCtbVinm-xM0APPn9xFUz37-3VCM",
+          "mode": "list",
+          "cachedResultName": "Linkedin",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1MX_Dfp2eNrUFIp-MCtbVinm-xM0APPn9xFUz37-3VCM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sayfa1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1MX_Dfp2eNrUFIp-MCtbVinm-xM0APPn9xFUz37-3VCM/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Linkedin Url": "={{ $('Get row(s) in sheet').item.json['Linkedin Url'] }}",
+            "Icebreaker": "={{ $json.output.icebreaker }}"
+          },
+          "matchingColumns": [
+            "Linkedin Url"
+          ],
+          "schema": [
+            {
+              "id": "First Name",
+              "displayName": "First Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Last Name",
+              "displayName": "Last Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Linkedin Url",
+              "displayName": "Linkedin Url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Title",
+              "displayName": "Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Company Industry",
+              "displayName": "Company Industry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Company Employee Count",
+              "displayName": "Company Employee Count",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Company Name",
+              "displayName": "Company Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Company Description",
+              "displayName": "Company Description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Icebreaker",
+              "displayName": "Icebreaker",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        976,
+        0
+      ],
+      "id": "bbad9a81-1e24-4158-a019-92938b682866",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "5X3fhM8jvaJACbBq",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "CompanyNameChanger",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CompanyNameChanger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "8cb917d7-44d5-4225-911c-1156deb16e7c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5550293fb54b2bd505799e15b302c4c5f7d753811c5a1d31747eacb6a85a6ddb"
+  },
+  "id": "pfFW2HCdqKY9ybB0",
+  "tags": []
+}

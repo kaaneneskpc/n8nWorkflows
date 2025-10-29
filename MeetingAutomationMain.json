@@ -1,0 +1,710 @@
+{
+  "name": "MeetingAutomationMain",
+  "nodes": [
+    {
+      "parameters": {
+        "events": [
+          "BOOKING_CREATED"
+        ],
+        "options": {}
+      },
+      "type": "n8n-nodes-base.calTrigger",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "0c0dc27d-da8d-4665-bf73-e4c7efb949d2",
+      "name": "Cal.com Trigger",
+      "webhookId": "94e961c3-2fcd-491a-b66a-740eac1f5394",
+      "credentials": {
+        "calApi": {
+          "id": "4DrIg7Mtc2pt4dpM",
+          "name": "Cal account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=## Role\n\nYou are an intelligent assistant designed to analyze meeting participant information and enrich their data based on their email address. Using the provided full name and email address, perform the following tasks:\n\n\n\n- Email domain extraction:\n\nIdentify and extract the domain name from the email address (everything that follows the @ symbol).\n\nExample: for jdoe@example.com, the extracted domain is example.com.\n\n\n\n- Company identification:\n\nDeduce the company name from the email domain.\n\nIf the domain belongs to a generic email provider (examples: gmail.com, yahoo.com, outlook.com), indicate \"Not identifiable\".\n\nOtherwise, format the company name correctly (example: example.com → Example).\n\n\n\n## Expected response format:\n\n{\n\n  \"Full Name\":\"John Doe\",\n\n  \"email\": \"jdoe@example.com\", \n\n  \"domain\": \"example.com\", \n\n  \"entreprise\": \"Example\",\n\n}\n\n\n\nImportant: the output must be in JSON format without \"\\n\". Do not put quotation marks in the boolean search.\n\n## Data to analyze:\n\n\n\nGuest email: {{ $json.attendees[0].email }} \n\nGuest name: {{ $json.attendees[0].name}}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "9222e79c-2f45-49e9-8403-9575f05514d5",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "F0GVqNjGj9fppqFu",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Full Name: {{ $json.content.parts[0].text.parseJson()['Full Name'] }}\nEmail: {{ $json.content.parts[0].text.parseJson().email }}\nDomain: {{ $json.content.parts[0].text.parseJson().domain }}\nEntreprise: {{ $json.content.parts[0].text.parseJson().entreprise }}",
+        "options": {
+          "systemMessage": "# Agent Role:\nYou are an agent specialized in lead enrichment to optimize appointments scheduled in the calendar. Your objective is to collect and structure valuable information about each lead from the provided data and tools at your disposal.\n\n## Received Data:\n- Lead's full name \n- Lead's email\n- Company domain name\n- Company name\n\n## Tools at Your Disposal:\n1. **Website Analysis**: Allows extraction of key information from the prospect's website (activity, services, positioning, news, etc.).\n  - Usage: Send the company's domain name to this tool and retrieve the results.\n\n2. **LinkedIn Research**: Helps identify the prospect's LinkedIn profile using the person's name and company.\n- Usage: Input the person's full name and company name into this tool.\n\n3. **Gemini**: Retrieves the latest news and insights about the lead's company. - Usage: Search for relevant news and select the most recent and significant ones. You must create the prompt yourself to find the latest news, for example \"latest news (company domain name)\"\n\n## Report Format to Generate:\nThe agent must write a structured and concise report, ready to be sent by email, containing the following information:\n\n**General Information** \n- Lead name: [Full name]\n- Email: [Email]\n- Company: [Company name]\n- Website: [Domain name]\n- LinkedIn profile: [Profile link] (if found)\n\n**Company Information**\n- Industry sector: [Domain]\n- Main services: [Summary of services offered]\n- Positioning & differentiation: [What distinguishes the company]\n- Key figures (if available): [Company size, revenue, employees]\n\n**Latest News**\n- News 1: [Title+summary] + source\nNews 2: [Title+summary] + source\nNews 3: [Title+summary] + source\n\n## Specific Instructions:\n- Ensure you have accurate and current information.\n- Avoid redundancy and prioritize clarity.\n- Write in a fluid and natural manner, with a professional yet accessible tone.\n- If information is not found, simply state \"Not available\".\n- The report should be readable in 30 seconds and contain only the most relevant information.\n\nThe goal is to provide a **useful and actionable report** that will better prepare for the meeting and maximize the impact of the first exchange.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        560,
+        0
+      ],
+      "id": "edc0e6af-7f30-4c15-a951-99829efb801b",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        432,
+        208
+      ],
+      "id": "5773c380-85e9-4326-9928-0c2c77edfeb8",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "F0GVqNjGj9fppqFu",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "Call this tool to analyze specific website URL. Send it the URL needed to analyze only.",
+        "workflowId": {
+          "__rl": true,
+          "value": "Cn22wzoxH6YVubyV",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/Cn22wzoxH6YVubyV",
+          "cachedResultName": "MeetingAutomationWebSite"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        896,
+        240
+      ],
+      "id": "64d72443-8e62-4217-a1ac-faf472fa7a5b",
+      "name": "Analyse Website"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "l0bm4e36bX1kg9tL",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/l0bm4e36bX1kg9tL",
+          "cachedResultName": "MeetingAutomationGemini"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        608,
+        256
+      ],
+      "id": "dff4ea70-fe35-4433-9a36-04e9a73f1369",
+      "name": "Gemini"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "K5Mc09W1iur1oriz",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/K5Mc09W1iur1oriz",
+          "cachedResultName": "MeetingAutomationLinkedin"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        752,
+        240
+      ],
+      "id": "f810c37e-16a7-4b66-8cad-3bd56cdea835",
+      "name": "LinkedinResearch",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "sendTo": "kaangsli5526@gmail.com",
+        "subject": "Meeting Information",
+        "emailType": "text",
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        912,
+        0
+      ],
+      "id": "6328c10e-d412-427b-a962-25148668c8e8",
+      "name": "Send a message",
+      "webhookId": "34d9b8c2-f7f2-43a5-ab2c-6393911c9301",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "L1KLpLH21h7aHW3N",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "65eeba4e-929c-4f9b-87e2-9a6b206c490a",
+              "name": "response",
+              "value": "={{ $json.candidates[0].content.parts[0].text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        512,
+        -240
+      ],
+      "id": "8e2aac55-0da2-48ad-a6c5-79f0b3d4c9d2",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-goog-api-key"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [\n    {\n      \"parts\": [\n        {\n          \"text\": \"Search for the latest news in english about {{ $json.query }}\"\n        }\n      ]\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        304,
+        -240
+      ],
+      "id": "13b58de0-0118-414a-858f-2eb19d4c1695",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "query"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        96,
+        -240
+      ],
+      "id": "43b75b33-8d62-43fa-b7a9-6bcdd0402b8f",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.tavily.com/search",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"query\": \"{{$json.query}}\",\n  \"auto_parameters\": false,\n  \"topic\": \"general\",\n  \"search_depth\": \"basic\",\n  \"chunks_per_source\": 3,\n  \"max_results\": 1,\n  \"time_range\": null,\n  \"start_date\": \"2025-02-09\",\n  \"end_date\": \"2000-01-28\",\n  \"include_answer\": true,\n  \"include_raw_content\": true,\n  \"include_images\": false,\n  \"include_image_descriptions\": false,\n  \"include_favicon\": false,\n  \"include_domains\": [],\n  \"exclude_domains\": [],\n  \"country\": null\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        160,
+        464
+      ],
+      "id": "6c86ef8e-988f-4982-aee5-d91f095fc1ac",
+      "name": "Tavily"
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = $input.first().json.results;\n\nconst linkedinUrls = results.filter(result => result.url.includes(\"linkedin.com\"))\n.map(result => ({jsom: {linkedinUrl: result.url}}))\n\nreturn linkedinUrls"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        368,
+        464
+      ],
+      "id": "82379ba9-328b-47ce-b489-4a1ffa40822d",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "linkedinurl"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        576,
+        464
+      ],
+      "id": "6035c830-7e29-44b2-9e52-f237c82acc05",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "383f92b1-e2f1-461c-992f-27bdcfe3860a",
+              "name": "query",
+              "value": "={{ $json.query }} site:linkedin.com",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -48,
+        464
+      ],
+      "id": "7c140c87-0631-485a-9302-78c18198d473",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a helpful URL links analyzer"
+            },
+            {
+              "content": "=Read and analyse the results from google search. In the results section read and find the persons linkedin profile. Output only the main linkedin profile url with nothing else.\nThe results you should read: {{$node[\"Aggregate\"].json.linkedinUrl}}\n## Example input:\n{\n\"results\":[\n{\n\"title\": \"John Doe - Senior Software Engineer | LinkedIn\",\n\"link\": \"https://www.linkedin.com/in/johndoe\",\n\"snippet\": \"View John Doe's profile on LinkedIn, the world's largest professional community.\"\n},\n{\n\"title\": \"John Doe | GitHub\",\n\"link\": \"https://github.com/johndoe\",\n\"snippet\": \"GitHub profile for John Doe - projects, repositories, and contributions.\"\n}, \n{\n\"title\": \"John Doe - Blog\",\n\"link\": \"https://johndoeblog.com\",\n\"snippet\": \"Personal blog of John Doe where he shares tech articles and tutorials.\"\n},\n{\n\"title\": \"John Doe - Twitter\",\n\"link\": \"https://twitter.com/johndoe\",\n\"snippet\": \"Follow John Doe on Twitter for updates and insights.\"\n}\n]\n}\n\n## Example output:\nhttps://www.linkedin.com/in/johndoe"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        784,
+        464
+      ],
+      "id": "f626786b-8b84-4333-b930-2ed0cebc27ed",
+      "name": "Message a model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "F0GVqNjGj9fppqFu",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.data }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=# Agent Role: You are an expert in business activity analysis and writing clear and impactful summaries. Your objective is to extract and structure essential information about a prospect from their website text content. # Objective: Generate a **concise and structured report** describing the prospect's activity. This report must be precise, concise, and well-organized to be useful for a sales or marketing team. # Report Structure: ## 1. **Prospect Name and Identity** - Company or professional name - Slogan (if available) Website URL ## 2. **General Overview** - Short description of the company (2-3 sentences maximum) - Main business sector - Possible specialization or niche ## 3. **Key Products & Services** - List of main products/services offered - Keywords related to offerings (e.g., \"SaaS solutions\", \"business coaching\", \"digital marketing agency\") - Added value or differentiation from the market (if identifiable) ## 4. **Targets & Clients** - Type of targeted clientele (B2B, B2C, specific sector, SMEs/large companies, etc.) - Problems or needs the company addresses - Market positioning (high-end, accessible, custom, etc.) ## 5. **Positioning & Differentiation** - Main differentiating element (e.g., technological innovation, personalized approach, sector expertise...) - Key marketing messages used on the site\n\n# Specific Instructions:\n\n1. Extract only *#relevant and structuring informations*. No unnecessary\nrewording.\n\n2. Do not generate superfluous content: go **straight to the essentialsx«.\n3. If key information is missing from the website, don't invent it but\nindicate it as x*\"Not specified\"ss.\n\n4. Write in a x*fluid, professional, and concisesx manner.\n\n5. Prioritize short and impactful sentences.\n\n6. Adapt the level of detail according to the richness of content available\non the site.\n\n# Output Format:\nThe final report must be **clean, well-organized, and readablesx, with\nclear formatting (bold titles, bullet points).\n\n# Example Output:\n\n+#1. Prospect Name and Identitys«\n- saNamex*: WebBoost Agency\n\n- **Slogansx: \"Boost your digital presence\"\n\n- *#URLex: [www.webboost .com] (http: //www.webboost .com)\n\nI\n\n**2. General Overviews*\n\n- ssDescriptionxs: Agency specialized in website creation and digital\nstrategy.\n\n- *sBusiness sectorx*: Digital marketing\n\n= #*Specializations*: Showcase websites and e-commerce for SMEs\n\n#3. Key Products & Services«s\nWebsite creation (WordPress, Shopify)\n\nSEO and organic search ranking\n\nManagement of Google Ads and Facebook Ads advertising campaigns\nDigital strategy consulting\n\n+4. Targets & Clients**\n\n- s#Main targets**: VSEs, SMEs, independents\n\n- s#Addressed needsx*: Online visibility, customer acquisition\n- **Positioningsx*: Turnkey service, adapted to SME budgets\n\n#5. Positioning & Differentiationsx\n\n- Advanced SEO expertise\n\n- Solutions adapted to small structures\n\n- Transparent and commitment-free pricing\n"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        480,
+        -704
+      ],
+      "id": "b3bf5700-2839-4fa1-97e0-8fc0d4022b9b",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "73c02941-e68f-4905-914a-943aac009b8e",
+              "name": "url",
+              "value": "=https://{{ $json.query }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        48,
+        -704
+      ],
+      "id": "15ade5b7-c95a-42ed-ad58-74d3f8cd45b4",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "url": "=https://r.jina.ai/{{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        256,
+        -704
+      ],
+      "id": "e9ef99ad-7b93-4c42-b21e-5d69c0814f28",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        480,
+        -496
+      ],
+      "id": "0172c5a7-b1d2-499b-bca4-9830605477d5",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "F0GVqNjGj9fppqFu",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a492148b-31c7-4019-88c2-6c2894dce317",
+              "name": "response",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        832,
+        -704
+      ],
+      "id": "fe14f156-d8c5-40d5-8af5-57ae27d95086",
+      "name": "Edit Fields3"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Cal.com Trigger": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyse Website": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LinkedinResearch": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tavily": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Message a model1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Tavily",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "ee964592-e829-4087-850d-22c7cbc57e69",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5550293fb54b2bd505799e15b302c4c5f7d753811c5a1d31747eacb6a85a6ddb"
+  },
+  "id": "mDZHhGl8HvHPXTzi",
+  "tags": []
+}

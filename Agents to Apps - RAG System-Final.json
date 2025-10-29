@@ -1,0 +1,1280 @@
+{
+  "name": "Agents to Apps - RAG System-Final",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "43379dda-6dcb-4a86-a3fa-f5cbd5d0209f",
+              "name": "mimeType",
+              "value": "={{$binary.file.mimeType}}",
+              "type": "string"
+            },
+            {
+              "id": "5465564e-06d7-4a3c-be2b-1040dfbbeb6f",
+              "name": "fileName",
+              "value": "={{$binary.file.fileName}}",
+              "type": "string"
+            },
+            {
+              "id": "01d0edbd-0ad7-4c54-9c98-28c3350cc5f4",
+              "name": "userId",
+              "value": "={{ $binary.file.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -416,
+        944
+      ],
+      "id": "1086471a-9434-41a6-81cc-21300621f466",
+      "name": "Extract Fields"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        96,
+        736
+      ],
+      "id": "15282152-5835-46f6-9055-9cb2321526a9",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "binaryPropertyName": "file",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        96,
+        928
+      ],
+      "id": "bb41539c-de7b-46c8-b41e-1e17c176f326",
+      "name": "Extract from File1"
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        96,
+        1136
+      ],
+      "id": "707d6a66-03fd-43b7-bec3-f9610208fa15",
+      "name": "Extract from File2",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.3,
+      "position": [
+        1040,
+        928
+      ],
+      "id": "dc6149d7-d4c0-401d-bb9e-a6c259bdd8a9",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {
+          "queryName": "match_documents"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.1,
+      "position": [
+        560,
+        736
+      ],
+      "id": "b0ade5e9-d57f-4162-a45a-0fcade49da9b",
+      "name": "Supabase Vector Store"
+    },
+    {
+      "parameters": {
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "userId",
+                "value": "={{ $json.userId  }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1,
+      "position": [
+        656,
+        960
+      ],
+      "id": "a9f75ac9-a7b7-4b27-868f-022a155e3cbc",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "chunkOverlap": 200,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        752,
+        1152
+      ],
+      "id": "f4b16dbe-4666-4484-b271-209261d0ac2e",
+      "name": "Recursive Character Text Splitter"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -496,
+        176
+      ],
+      "id": "f93f2e2d-bba3-4689-b46e-a6a5fdc1673b",
+      "name": "When chat message received",
+      "webhookId": "1725d20e-0309-441c-a47f-532497fdc962"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "02000d43-932c-4544-84ff-fa46b735afc6",
+              "name": "chatInput",
+              "value": "={{ $json?.chatInput || $json.body.chatInput }}",
+              "type": "string"
+            },
+            {
+              "id": "c84de189-c016-4f5e-a679-2cb18795a1f2",
+              "name": "sessionId",
+              "value": "={{ $json?.sessionId || $json.body.sessionId }}",
+              "type": "string"
+            },
+            {
+              "id": "31aa93f2-a022-41e0-a7e9-3cdb7e5d70b4",
+              "name": "userId",
+              "value": "={{ $json?.body?.userId || $binary.file.id || \"c1fd0520-13c8-406d-9f0b-1372286b13c5\"}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        96,
+        272
+      ],
+      "id": "e5635871-f62d-4d45-a847-3a68735e4253",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a helpful assistant who helps answer questions based on documents in your knowledge base.\n\nWhen answering questions:\n- Use the document retrieval tool to search for relevant information\n- Provide accurate answers based on the retrieved documents\n- If you cannot find relevant information in the documents, say \"I don't have information about that in the available documents\"\n- Always cite which documents you're referencing when possible\n- Be concise and helpful in your responses\n\nDo not make up information that isn't found in the retrieved documents."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        528,
+        64
+      ],
+      "id": "9a14666c-8bf1-4bbb-a761-ed0af5db7616",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        608,
+        288
+      ],
+      "id": "4e5bf63b-c9fd-4062-a3ec-f62e12cede0a",
+      "name": "Postgres Chat Memory",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "document_corpus",
+        "toolDescription": "document data from uploaded documents",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "userId",
+                "value": "={{ $('Edit Fields').item.json.userId }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.1,
+      "position": [
+        736,
+        288
+      ],
+      "id": "1be57593-852c-4b12-9a2b-2c0a780e6e23",
+      "name": "Supabase Vector Store1"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "upload",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -496,
+        384
+      ],
+      "id": "da5960c2-4aa1-460a-92c6-cd40b48b28bd",
+      "name": "ChatWebhook",
+      "webhookId": "5ed5eb94-bac1-4da6-b2f4-7d2de11ab93c"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.3,
+      "position": [
+        1120,
+        272
+      ],
+      "id": "143255a2-e018-4132-8bea-fc7dda248a05",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "fetch",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -576,
+        1696
+      ],
+      "id": "1ba1a944-067d-4461-81a5-3242d905bb57",
+      "name": "YT-Webhook",
+      "webhookId": "53b08c10-fd33-4963-866a-02fa8fa98e63"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "05fc44f7-9c98-49d3-a546-3e2eed2ade51",
+              "name": "userId",
+              "value": "={{ $json.body.userId }}",
+              "type": "string"
+            },
+            {
+              "id": "17d4ce93-5ad6-4712-9751-1f8aae6f8f47",
+              "name": "videoUrl",
+              "value": "={{ $json.body.videoUrl }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -352,
+        1696
+      ],
+      "id": "af5de2bf-bb9e-4044-b009-502a60008bda",
+      "name": "ExtractFields"
+    },
+    {
+      "parameters": {
+        "url": "https://youtube-transcript3.p.rapidapi.com/api/transcript-with-url",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "url",
+              "value": "={{ $json.videoUrl }}"
+            },
+            {
+              "name": "flat_text",
+              "value": "true"
+            },
+            {
+              "name": "lang",
+              "value": "en"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-rapidapi-key",
+              "value": "add-your-rapidapi-key-here"
+            },
+            {
+              "name": "x-rapidapi-host",
+              "value": "youtube-transcript3.p.rapidapi.com"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "videoUrl",
+              "value": "={{ $json.videoUrl }}"
+            },
+            {
+              "name": "userId",
+              "value": "={{ $json.userId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -128,
+        1696
+      ],
+      "id": "f3fe28d9-9314-49d2-862f-836882d7d78e",
+      "name": "RapidAPI-HTTP Request",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.3,
+      "position": [
+        1472,
+        1584
+      ],
+      "id": "c9c0d1f4-7eec-4f18-8315-f1e55984d9d8",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "dce5816d-5e8b-4e6b-a496-5f389af2a99b",
+              "name": "transcript",
+              "value": "={{ $json.transcript }}",
+              "type": "string"
+            },
+            {
+              "id": "83d3864b-02fb-44d6-baf1-ce1fd24715a7",
+              "name": "userId",
+              "value": "={{ $('ExtractFields').item.json.userId }}",
+              "type": "string"
+            },
+            {
+              "id": "4e286362-91bc-40ef-9e1f-f71fd0500751",
+              "name": "videoUrl",
+              "value": "={{ $('ExtractFields').item.json.videoUrl }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        96,
+        1696
+      ],
+      "id": "0e2b3bcf-58c7-4f21-8bbd-1c513ca8ea73",
+      "name": "Combine Payload"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "21ecba13-ba5c-4a87-a4a2-004375296cd6",
+              "leftValue": "={{ $('RapidAPI-HTTP Request').item.json.success }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        320,
+        1696
+      ],
+      "id": "fea001c1-7ec7-4436-9905-b3a1d6efe900",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "errorMessage": "An Error Occured"
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        544,
+        1792
+      ],
+      "id": "e03bba45-e770-4094-a1ba-a3db38850ead",
+      "name": "Stop and Error",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "useCustomSchema": true,
+        "tableId": "transcripts",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "user_id",
+              "fieldValue": "={{ $json.userId.trim() }}"
+            },
+            {
+              "fieldId": "video_url",
+              "fieldValue": "={{ $json.videoUrl }}"
+            },
+            {
+              "fieldId": "transcript",
+              "fieldValue": "={{ $json.transcript }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        544,
+        1584
+      ],
+      "id": "bdc5a08e-b853-479f-ae38-9794a247c4d9",
+      "name": "Supabase",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "transcripts",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "user_id",
+              "keyValue": "={{ $json.user_id }}"
+            },
+            {
+              "keyName": "id",
+              "keyValue": "={{ $json.id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        752,
+        1584
+      ],
+      "id": "8697bf24-36fa-48af-88a9-be8f823e7294",
+      "name": "Supabase1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {
+          "queryName": "match_documents"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.1,
+      "position": [
+        992,
+        1584
+      ],
+      "id": "2a2402a4-6f37-498d-9ba1-feb7e5c5223c",
+      "name": "Supabase Vector Store2",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "userId",
+                "value": "={{ $('Supabase1').item.json.user_id }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1,
+      "position": [
+        1104,
+        1808
+      ],
+      "id": "3266c75b-49b2-4eb2-abc8-38971fc4ad17",
+      "name": "Default Data Loader1"
+    },
+    {
+      "parameters": {
+        "chunkOverlap": 200,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        1184,
+        2016
+      ],
+      "id": "5c2ce14e-9ecb-416f-a762-67c3c7c68dc7",
+      "name": "Recursive Character Text Splitter1"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "upload",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -720,
+        944
+      ],
+      "id": "ac849b27-ca52-402c-a602-ae017730eddb",
+      "name": "WebhookExtractor",
+      "webhookId": "f598e56b-e671-47f2-aaf9-7e1bc26acd6b"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        464,
+        320
+      ],
+      "id": "ea217ec4-b4a4-4eb5-a3c7-4d4bf4c51b08",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "F0GVqNjGj9fppqFu",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        832,
+        512
+      ],
+      "id": "1d0b0325-7f25-4e7d-9c9c-376a80925f09",
+      "name": "Embeddings Google Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "F0GVqNjGj9fppqFu",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        496,
+        1088
+      ],
+      "id": "e4f6a3a9-490e-4064-b0ed-914012e2d2b6",
+      "name": "Embeddings Google Gemini1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "F0GVqNjGj9fppqFu",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        880,
+        1904
+      ],
+      "id": "66d96711-c6a3-46b1-b6c1-a8cc65a1044b",
+      "name": "Embeddings Google Gemini2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "F0GVqNjGj9fppqFu",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.mimeType }}",
+                    "rightValue": "={{ \"application/pdf\"}}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "a083a8a1-4cd4-4331-b761-53593230b465"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "49de5405-b67e-4fcf-9d4a-49b65df0f866",
+                    "leftValue": "={{ $json.mimeType }}",
+                    "rightValue": "={{ \"text/csv\"}}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "9fae7677-b29d-45bb-b8fd-13cab88dfc01",
+                    "leftValue": "={{ $json.mimeType }}",
+                    "rightValue": "={{ \"text/plain\"}}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -128,
+        928
+      ],
+      "id": "c9b28d26-e944-420e-9ad0-062581ecd0fc",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "jsCode": "// grab the original userId from your Extract Fields node\n// const userId = $node[\"Extract Fields\"].json[\"userId\"];\n\nconst userId = $('Extract Fields').first().json.body.userId\n// `items` is the array coming out of whichever extractor ran.\n// Turn each item’s json into one “content” array:\nconst content = items.map(i => i.json);\n\n// emit exactly one object with both userId + content \nreturn [{\n  json: {\n    userId,\n    content\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352,
+        960
+      ],
+      "id": "17153c9d-03cc-4a46-97e5-e5d30e38005d",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "chatId": "=601938812",
+        "text": "={{$json[\"message\"]}}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1568,
+        944
+      ],
+      "id": "53f182d2-5dc8-4cb0-8cc1-43c628b3275c",
+      "name": "Send a text message",
+      "webhookId": "f789a281-1475-49c1-a323-c9a0e77f0b11",
+      "credentials": {
+        "telegramApi": {
+          "id": "7LMyyuRAoI3vwtvS",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const customers = $json[\"response\"][\"body\"][0][\"content\"];\n\n// Telegram karakter limiti\nconst limit = 4000;\nlet messages = [];\nlet currentMessage = \"\";\n\nfor (const item of customers) {\n  const entry =\n`📇 *${item[\"First Name\"]} ${item[\"Last Name\"]}*\n🏢 ${item[\"Company\"]}\n🌍 ${item[\"City\"]}, ${item[\"Country\"]}\n📞 ${item[\"Phone 1\"]}\n📧 ${item[\"Email\"]}\n🗓️ ${item[\"Subscription Date\"]}\n🔗 ${item[\"Website\"]}\n\n`;\n\n  // eğer mesaj çok uzadıysa yeni mesaja geç\n  if ((currentMessage + entry).length > limit) {\n    messages.push({ message: currentMessage });\n    currentMessage = entry;\n  } else {\n    currentMessage += entry;\n  }\n}\n\nif (currentMessage) messages.push({ message: currentMessage });\n\nreturn messages.map(m => ({ json: m }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1312,
+        944
+      ],
+      "id": "b9feab2d-81cf-4c43-aa0a-166090ae7114",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "chatId": "=601938812",
+        "text": "={{$json[\"message\"]}}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1648,
+        288
+      ],
+      "id": "2d989691-172e-4e26-b390-dbb3560c8d3c",
+      "name": "Send a text message1",
+      "webhookId": "f789a281-1475-49c1-a323-c9a0e77f0b11",
+      "credentials": {
+        "telegramApi": {
+          "id": "7LMyyuRAoI3vwtvS",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const customers = $json[\"response\"][\"body\"][0][\"content\"];\n\n// Telegram karakter limiti\nconst limit = 4000;\nlet messages = [];\nlet currentMessage = \"\";\n\nfor (const item of customers) {\n  const entry =\n`📇 *${item[\"First Name\"]} ${item[\"Last Name\"]}*\n🏢 ${item[\"Company\"]}\n🌍 ${item[\"City\"]}, ${item[\"Country\"]}\n📞 ${item[\"Phone 1\"]}\n📧 ${item[\"Email\"]}\n🗓️ ${item[\"Subscription Date\"]}\n🔗 ${item[\"Website\"]}\n\n`;\n\n  // eğer mesaj çok uzadıysa yeni mesaja geç\n  if ((currentMessage + entry).length > limit) {\n    messages.push({ message: currentMessage });\n    currentMessage = entry;\n  } else {\n    currentMessage += entry;\n  }\n}\n\nif (currentMessage) messages.push({ message: currentMessage });\n\nreturn messages.map(m => ({ json: m }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1392,
+        288
+      ],
+      "id": "b79b4be6-0305-47b3-a13c-ca2a85ddd983",
+      "name": "Code in JavaScript1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Extract Fields": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File1": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File2": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ChatWebhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "YT-Webhook": {
+      "main": [
+        [
+          {
+            "node": "ExtractFields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ExtractFields": {
+      "main": [
+        [
+          {
+            "node": "RapidAPI-HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RapidAPI-HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Combine Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine Payload": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop and Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase": {
+      "main": [
+        [
+          {
+            "node": "Supabase1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase1": {
+      "main": [
+        [
+          {
+            "node": "Supabase Vector Store2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store2": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader1": {
+      "ai_document": [
+        [
+          {
+            "node": "Supabase Vector Store2",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter1": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader1",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WebhookExtractor": {
+      "main": [
+        [
+          {
+            "node": "Extract Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini2": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store2",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract from File1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract from File2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook1": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a1fc1948-0b94-41d6-b7ee-8f2838ab5e90",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5550293fb54b2bd505799e15b302c4c5f7d753811c5a1d31747eacb6a85a6ddb"
+  },
+  "id": "fyCv8VNtJS5KakR8",
+  "tags": []
+}
