@@ -99,7 +99,19 @@ This repository contains a collection of reusable n8n workflows for email handli
 - Some nodes are disabled by default (e.g., RapidAPI transcript flow, certain tool workflows). Enable and set credentials as needed.
 - Telegram, Tavily, RapidAPI, Serper are optional services; required only if you enable the related nodes.
 
-### License
-Add your repository license terms here (e.g., MIT).
+## 📝 License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## 👨‍💻 Developer && Contact
+
+**Kaan Enes Kapıcı**
+- LinkedIn: [Kaan Enes Kapıcı](https://www.linkedin.com/in/kaaneneskpc/)
+- GitHub: [@kaaneneskpc](https://github.com/kaaneneskpc)
+- Email: kaaneneskpc1@gmail.com
+
+💡 **Open to feedback and collaboration!** If you're interested in modern mobile architecture, analytics dashboards, or multiplatform development, feel free to connect. 🚀
+
+⭐ If you liked this project, don't forget to give it a star!
 
 
